@@ -2,7 +2,6 @@
 import { ref, onMounted, computed } from 'vue'
 import { ProductService, SaleService } from '../service/api'
 import { useCartStore } from '../store/cart'
-import { useAuthStore } from '../store/auth'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Card from 'primevue/card'
@@ -19,7 +18,6 @@ const loading = ref(false)
 const saleSuccess = ref(false)
 
 const cartStore = useCartStore()
-const authStore = useAuthStore()
 
 onMounted(async () => {
   try {
@@ -48,8 +46,7 @@ const handleProcessPayment = async () => {
     const saleData = {
       items: cartStore.items.map(i => ({ productId: i.id, quantity: i.quantity })),
       paymentMethod: paymentMethod.value,
-      referenceCode: referenceCode.value,
-      userId: authStore.user.id
+      referenceCode: referenceCode.value
     }
     await SaleService.create(saleData)
     saleSuccess.value = true

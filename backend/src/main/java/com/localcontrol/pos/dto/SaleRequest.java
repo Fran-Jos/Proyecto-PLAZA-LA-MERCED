@@ -15,7 +15,6 @@ public class SaleRequest {
     private List<ItemRequest> items;
     private String paymentMethod; // CASH, DEUNA_TRANSFER
     private String referenceCode; // For DEUNA
-    private Long userId;
 
     @Data
     @AllArgsConstructor

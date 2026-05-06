@@ -23,16 +23,16 @@ public class CashService {
     private final SaleRepository saleRepository;
     private final UserRepository userRepository;
 
-    public Optional<CashSession> getActiveSession(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow();
+    public Optional<CashSession> getActiveSession(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow();
         return cashSessionRepository.findByUserAndStatus(user, CashSession.SessionStatus.OPEN);
     }
 
     @Transactional
-    public CashSession openSession(Long userId, BigDecimal openingBalance) {
-        User user = userRepository.findById(userId).orElseThrow();
+    public CashSession openSession(String username, BigDecimal openingBalance) {
+        User user = userRepository.findByUsername(username).orElseThrow();
         
-        if (getActiveSession(userId).isPresent()) {
+        if (getActiveSession(username).isPresent()) {
             throw new RuntimeException("Ya existe una sesión abierta para este usuario.");
         }
 
@@ -47,8 +47,8 @@ public class CashService {
     }
 
     @Transactional
-    public CashSession closeSession(Long userId, BigDecimal reportedBalance) {
-        CashSession session = getActiveSession(userId)
+    public CashSession closeSession(String username, BigDecimal reportedBalance) {
+        CashSession session = getActiveSession(username)
                 .orElseThrow(() -> new RuntimeException("No hay sesión abierta para cerrar."));
 
         // Calcular balance esperado (Ventas en EFECTIVO desde la apertura)

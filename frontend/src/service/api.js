@@ -1,8 +1,10 @@
 import axios from 'axios'
 import { useAuthStore } from '../store/auth'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
+
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api'
+  baseURL: API_URL
 })
 
 api.interceptors.request.use((config) => {
@@ -40,12 +42,15 @@ export const SaleService = {
   },
   getAll() {
     return api.get('/sales')
+  },
+  getToday() {
+    return api.get('/sales/today')
   }
 }
 
 export const CashService = {
-  getActive(userId) {
-    return api.get(`/cash/active/${userId}`)
+  getActive() {
+    return api.get('/cash/active')
   },
   open(data) {
     return api.post('/cash/open', data)

@@ -11,6 +11,5 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CashSessionRequest {
-    private Long userId;
     private BigDecimal balance; // Opening or Reported balance
 }

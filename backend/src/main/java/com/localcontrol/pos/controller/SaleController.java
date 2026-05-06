@@ -5,6 +5,7 @@ import com.localcontrol.pos.model.Sale;
 import com.localcontrol.pos.service.SaleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,12 +18,17 @@ public class SaleController {
     private final SaleService saleService;
 
     @PostMapping
-    public ResponseEntity<Sale> create(@RequestBody SaleRequest request) {
-        return ResponseEntity.ok(saleService.createSale(request));
+    public ResponseEntity<Sale> create(@RequestBody SaleRequest request, Authentication authentication) {
+        return ResponseEntity.ok(saleService.createSale(request, authentication.getName()));
     }
 
     @GetMapping
     public ResponseEntity<List<Sale>> getAll() {
         return ResponseEntity.ok(saleService.getAllSales());
+    }
+
+    @GetMapping("/today")
+    public ResponseEntity<List<Sale>> getToday() {
+        return ResponseEntity.ok(saleService.getTodaySales());
     }
 }

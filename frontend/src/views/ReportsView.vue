@@ -9,6 +9,7 @@ import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import InputNumber from 'primevue/inputnumber'
+import Message from 'primevue/message'
 
 const authStore = useAuthStore()
 const sales = ref([])
@@ -25,7 +26,7 @@ const loadData = async () => {
   loading.value = true
   try {
     const [salesRes, cashRes] = await Promise.all([
-      SaleService.getAll(),
+      SaleService.getToday(),
       CashService.getActive(authStore.user.id)
     ])
     sales.value = salesRes.data
@@ -36,19 +37,16 @@ const loadData = async () => {
 }
 
 const totalDaily = computed(() => {
-  const today = new Date().toLocaleDateString()
   return sales.value
-    .filter(s => new Date(s.createdAt).toLocaleDateString() === today)
-    .reduce((acc, s) => acc + s.total, 0)
+    .reduce((acc, s) => acc + Number(s.total), 0)
 })
 
 const salesByMethod = computed(() => {
-  const today = new Date().toLocaleDateString()
-  const todaySales = sales.value.filter(s => new Date(s.createdAt).toLocaleDateString() === today)
+  const todaySales = sales.value
   
   return {
-    cash: todaySales.filter(s => s.paymentMethod === 'CASH').reduce((acc, s) => acc + s.total, 0),
-    deuna: todaySales.filter(s => s.paymentMethod === 'DEUNA_TRANSFER').reduce((acc, s) => acc + s.total, 0)
+    cash: todaySales.filter(s => s.paymentMethod === 'CASH').reduce((acc, s) => acc + Number(s.total), 0),
+    deuna: todaySales.filter(s => s.paymentMethod === 'DEUNA_TRANSFER').reduce((acc, s) => acc + Number(s.total), 0)
   }
 })
 

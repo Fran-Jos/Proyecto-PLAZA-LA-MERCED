@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,12 +71,20 @@ public class SaleService {
             if (sale.getReferenceCode() == null || sale.getReferenceCode().trim().isEmpty()) {
                 throw new RuntimeException("El número de comprobante es obligatorio para transferencias DEUNA");
             }
+            if (saleRepository.existsByReferenceCodeIgnoreCase(sale.getReferenceCode().trim())) {
+                throw new RuntimeException("El número de comprobante ya fue registrado anteriormente");
+            }
         }
 
         return saleRepository.save(sale);
     }
 
     public List<Sale> getAllSales() {
-        return saleRepository.findAll();
+        return saleRepository.findAllByCreatedAtAfterOrderByCreatedAtDesc(LocalDate.now().atStartOfDay());
+    }
+
+    public List<Sale> getTodaySales() {
+        LocalDateTime start = LocalDate.now().atStartOfDay();
+        return saleRepository.findAllByCreatedAtBetweenOrderByCreatedAtDesc(start, LocalDateTime.now());
     }
 }

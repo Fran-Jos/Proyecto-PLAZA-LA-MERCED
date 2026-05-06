@@ -42,6 +42,9 @@ export const SaleService = {
   },
   getAll() {
     return api.get('/sales')
+  },
+  getToday() {
+    return api.get('/sales/today')
   }
 }
 

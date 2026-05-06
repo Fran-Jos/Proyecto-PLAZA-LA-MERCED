@@ -26,4 +26,9 @@ public class SaleController {
     public ResponseEntity<List<Sale>> getAll() {
         return ResponseEntity.ok(saleService.getAllSales());
     }
+
+    @GetMapping("/today")
+    public ResponseEntity<List<Sale>> getToday() {
+        return ResponseEntity.ok(saleService.getTodaySales());
+    }
 }

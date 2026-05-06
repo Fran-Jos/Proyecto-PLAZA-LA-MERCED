@@ -29,7 +29,7 @@ const loadData = async () => {
   try {
     const [salesRes, cashRes] = await Promise.all([
       SaleService.getToday(),
-      CashService.getActive(authStore.user.id)
+      CashService.getActive()
     ])
     sales.value = salesRes.data
     activeSession.value = cashRes.data || null
@@ -55,7 +55,6 @@ const salesByMethod = computed(() => {
 const handleCloseCash = async () => {
   try {
     await CashService.close({
-      userId: authStore.user.id,
       balance: reportedBalance.value
     })
     showCloseDialog.value = false
@@ -69,7 +68,6 @@ const handleCloseCash = async () => {
 const handleOpenCash = async () => {
   try {
     await CashService.open({
-      userId: authStore.user.id,
       balance: openingBalance.value
     })
     showOpenDialog.value = false

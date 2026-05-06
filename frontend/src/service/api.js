@@ -49,8 +49,8 @@ export const SaleService = {
 }
 
 export const CashService = {
-  getActive(userId) {
-    return api.get(`/cash/active/${userId}`)
+  getActive() {
+    return api.get('/cash/active')
   },
   open(data) {
     return api.post('/cash/open', data)

@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,9 +22,9 @@ public class SaleService {
     private final UserRepository userRepository;
 
     @Transactional
-    public Sale createSale(SaleRequest request) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    public Sale createSale(SaleRequest request, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
 
         Sale sale = Sale.builder()
                 .paymentMethod(Sale.PaymentMethod.valueOf(request.getPaymentMethod()))

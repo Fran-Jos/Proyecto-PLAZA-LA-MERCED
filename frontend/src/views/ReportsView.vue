@@ -16,7 +16,9 @@ const sales = ref([])
 const activeSession = ref(null)
 const loading = ref(false)
 const showCloseDialog = ref(false)
+const showOpenDialog = ref(false)
 const reportedBalance = ref(0)
+const openingBalance = ref(0)
 
 onMounted(() => {
   loadData()
@@ -61,6 +63,21 @@ const handleCloseCash = async () => {
     alert('Caja cerrada con éxito. Revisa el descuadre en el historial.')
   } catch (err) {
     alert('Error al cerrar caja')
+  }
+}
+
+const handleOpenCash = async () => {
+  try {
+    await CashService.open({
+      userId: authStore.user.id,
+      balance: openingBalance.value
+    })
+    showOpenDialog.value = false
+    openingBalance.value = 0
+    await loadData()
+    alert('Caja abierta con éxito')
+  } catch (err) {
+    alert(err.response?.data?.message || 'Error al abrir caja')
   }
 }
 
@@ -114,7 +131,8 @@ const formatDate = (dateString) => {
             <Button label="CERRAR CAJA (ARQUEO)" icon="pi pi-lock" severity="danger" @click="showCloseDialog = true" />
           </div>
           <div v-else class="text-center p-4">
-            <Message severity="warn" variant="simple">No hay una sesión de caja activa. Abre una desde el POS.</Message>
+            <Message severity="warn" variant="simple">No hay una sesión de caja activa. Puedes abrirla aquí mismo.</Message>
+            <Button label="ABRIR CAJA" icon="pi pi-lock-open" class="mt-3" @click="showOpenDialog = true" />
           </div>
         </template>
       </Card>
@@ -159,6 +177,20 @@ const formatDate = (dateString) => {
       <template #footer>
         <Button label="Cancelar" icon="pi pi-times" text @click="showCloseDialog = false" />
         <Button label="Finalizar Cierre" icon="pi pi-check" severity="danger" @click="handleCloseCash" />
+      </template>
+    </Dialog>
+
+    <Dialog v-model:visible="showOpenDialog" header="Apertura de Caja" modal :style="{ width: '400px' }">
+      <div class="space-y-4 pt-4">
+        <p class="text-gray-600">Ingresa el monto con el que iniciarás la caja del día.</p>
+        <div class="field">
+          <label class="font-bold block mb-1">Monto Inicial</label>
+          <InputNumber v-model="openingBalance" mode="currency" currency="USD" locale="en-US" class="w-full" autofocus />
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Cancelar" icon="pi pi-times" text @click="showOpenDialog = false" />
+        <Button label="Abrir Caja" icon="pi pi-check" @click="handleOpenCash" />
       </template>
     </Dialog>
   </div>

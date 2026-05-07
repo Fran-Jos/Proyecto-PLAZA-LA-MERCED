@@ -8,6 +8,7 @@ import InputText from 'primevue/inputtext'
 import Card from 'primevue/card'
 import Dialog from 'primevue/dialog'
 import Message from 'primevue/message'
+import { emitDataChanged, DataEvents } from '../utils/realtimeEvents'
 
 const products = ref([])
 const categories = ref([])
@@ -52,6 +53,7 @@ const handleProcessPayment = async () => {
       userId: authStore.user.id
     }
     await SaleService.create(saleData)
+    emitDataChanged(DataEvents.SALE_CREATED)
     saleSuccess.value = true
     cartStore.clear()
     setTimeout(() => {

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { SaleService, CashService } from '../service/api'
+import { subscribeDataChanged } from '../utils/realtimeEvents'
 import { useAuthStore } from '../store/auth'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -18,28 +19,18 @@ const cashHistory = ref([])
 const loading = ref(false)
 const showCloseDialog = ref(false)
 const reportedBalance = ref(0)
-let refreshTimer = null
+let unsubscribeEvents = null
 
 onMounted(() => {
   loadData()
-  startAutoRefresh()
+  unsubscribeEvents = subscribeDataChanged(() => loadData(false))
   document.addEventListener('visibilitychange', handleVisibilityRefresh)
 })
 
 onUnmounted(() => {
-  stopAutoRefresh()
+  if (unsubscribeEvents) unsubscribeEvents()
   document.removeEventListener('visibilitychange', handleVisibilityRefresh)
 })
-
-const startAutoRefresh = () => {
-  stopAutoRefresh()
-  refreshTimer = setInterval(() => loadData(false), 4000)
-}
-
-const stopAutoRefresh = () => {
-  if (refreshTimer) clearInterval(refreshTimer)
-  refreshTimer = null
-}
 
 const handleVisibilityRefresh = () => {
   if (document.visibilityState === 'visible') loadData(false)

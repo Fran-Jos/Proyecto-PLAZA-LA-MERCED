@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/auth'
 import Card from 'primevue/card'
 import InputNumber from 'primevue/inputnumber'
 import Button from 'primevue/button'
+import { emitDataChanged, DataEvents } from '../utils/realtimeEvents'
 
 const authStore = useAuthStore()
 const activeSession = ref(null)
@@ -29,6 +30,7 @@ const openCash = async () => {
   error.value = ''
   try {
     await CashService.open({ userId: authStore.user.id, balance: openingBalance.value || 0 })
+    emitDataChanged(DataEvents.CASH_OPENED)
     await loadActive()
   } catch (err) {
     error.value = err.response?.data?.message || 'No se pudo abrir caja'
@@ -42,6 +44,7 @@ const closeCash = async () => {
   error.value = ''
   try {
     await CashService.close({ userId: authStore.user.id, balance: closingBalance.value || 0 })
+    emitDataChanged(DataEvents.CASH_CLOSED)
     activeSession.value = null
     closingBalance.value = 0
   } catch (err) {

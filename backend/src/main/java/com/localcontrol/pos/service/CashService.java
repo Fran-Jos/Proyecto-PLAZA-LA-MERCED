@@ -23,21 +23,29 @@ public class CashService {
     private final SaleRepository saleRepository;
     private final UserRepository userRepository;
 
-    public Optional<CashSession> getActiveSession(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow();
-        return cashSessionRepository.findByUserAndStatus(user, CashSession.SessionStatus.OPEN);
+    public Optional<CashSession> getActiveSession() {
+        return cashSessionRepository.findByStatus(CashSession.SessionStatus.OPEN);
     }
 
     @Transactional
-    public CashSession openSession(Long userId, BigDecimal openingBalance) {
+    public CashSession openSession(Long userId, BigDecimal openingBalance, String boxName) {
         User user = userRepository.findById(userId).orElseThrow();
-        
-        if (getActiveSession(userId).isPresent()) {
-            throw new RuntimeException("Ya existe una sesión abierta para este usuario.");
+
+        if (boxName == null || boxName.trim().isEmpty()) {
+            throw new RuntimeException("Debe ingresar el nombre de la caja.");
+        }
+
+        if (openingBalance == null || openingBalance.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("El monto de apertura debe ser mayor a 0.");
+        }
+
+        if (getActiveSession().isPresent()) {
+            throw new RuntimeException("Ya existe una caja abierta. Debe cerrarse antes de abrir otra.");
         }
 
         CashSession session = CashSession.builder()
                 .user(user)
+                .name(boxName)
                 .openingBalance(openingBalance)
                 .status(CashSession.SessionStatus.OPEN)
                 .openedAt(LocalDateTime.now())
@@ -46,16 +54,21 @@ public class CashService {
         return cashSessionRepository.save(session);
     }
 
+
+    public List<CashSession> getSessionHistory() {
+        return cashSessionRepository.findAllByOrderByOpenedAtDesc();
+    }
+
     @Transactional
     public CashSession closeSession(Long userId, BigDecimal reportedBalance) {
-        CashSession session = getActiveSession(userId)
+        CashSession session = getActiveSession()
                 .orElseThrow(() -> new RuntimeException("No hay sesión abierta para cerrar."));
 
         // Calcular balance esperado (Ventas en EFECTIVO desde la apertura)
         // Nota: En un sistema real filtraríamos ventas por fecha y usuario
         List<Sale> sales = saleRepository.findAll(); // Simplificación para este MVP
         BigDecimal cashSalesTotal = sales.stream()
-                .filter(s -> s.getCreatedAt().isAfter(session.getOpenedAt()))
+                .filter(s -> s.getCashSession() != null && s.getCashSession().getId().equals(session.getId()))
                 .filter(s -> s.getPaymentMethod() == Sale.PaymentMethod.CASH)
                 .map(Sale::getTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

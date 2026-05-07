@@ -27,13 +27,25 @@ const router = createRouter({
       path: '/inventory',
       name: 'inventory',
       component: () => import('../views/InventoryView.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true, roles: ['ADMIN'] }
     },
     {
       path: '/reports',
       name: 'reports',
       component: () => import('../views/ReportsView.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true, roles: ['ADMIN'] }
+    },
+    {
+      path: '/cash',
+      name: 'cash',
+      component: () => import('../views/CashDeskView.vue'),
+      meta: { requiresAuth: true, roles: ['ADMIN', 'VENDEDOR'] }
+    },
+    {
+      path: '/users',
+      name: 'users',
+      component: () => import('../views/UserManagementView.vue'),
+      meta: { requiresAuth: true, roles: ['ADMIN'] }
     }
   ]
 })
@@ -43,6 +55,8 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login')
   } else if (to.path === '/login' && authStore.isAuthenticated) {
+    next('/')
+  } else if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {
     next('/')
   } else {
     next()

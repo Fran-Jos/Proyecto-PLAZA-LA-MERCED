@@ -40,17 +40,30 @@ export const SaleService = {
   },
   getAll() {
     return api.get('/sales')
+  },
+  getByUser(userId) {
+    return api.get(`/sales/user/${userId}`)
   }
 }
 
 export const CashService = {
-  getActive(userId) {
-    return api.get(`/cash/active/${userId}`)
+  getActive() {
+    return api.get(`/cash/active`)
+  },
+  getHistory() {
+    return api.get(`/cash/history`)
   },
   open(data) {
     return api.post('/cash/open', data)
   },
   close(data) {
     return api.post('/cash/close', data)
+  }
+}
+
+
+export const AdminService = {
+  createUser(data) {
+    return api.post('/admin/users', data)
   }
 }

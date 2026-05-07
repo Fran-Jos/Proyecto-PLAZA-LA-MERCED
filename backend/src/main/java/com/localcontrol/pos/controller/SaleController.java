@@ -25,4 +25,9 @@ public class SaleController {
     public ResponseEntity<List<Sale>> getAll() {
         return ResponseEntity.ok(saleService.getAllSales());
     }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Sale>> getByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(saleService.getSalesByUser(userId));
+    }
 }

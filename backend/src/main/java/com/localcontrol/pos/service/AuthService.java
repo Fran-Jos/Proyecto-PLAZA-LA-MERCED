@@ -1,6 +1,7 @@
 package com.localcontrol.pos.service;
 
 import com.localcontrol.pos.dto.AuthResponse;
+import com.localcontrol.pos.dto.CreateUserRequest;
 import com.localcontrol.pos.dto.LoginRequest;
 import com.localcontrol.pos.model.User;
 import com.localcontrol.pos.repository.UserRepository;
@@ -42,9 +43,25 @@ public class AuthService {
         var jwtToken = jwtService.generateToken(userDetails);
         return AuthResponse.builder()
                 .token(jwtToken)
+                .id(user.getId())
                 .username(user.getUsername())
                 .role(user.getRole().name())
                 .build();
+    }
+
+
+    public User createUser(CreateUserRequest request) {
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new RuntimeException("El usuario ya existe");
+        }
+
+        User user = User.builder()
+                .username(request.getUsername())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole())
+                .build();
+
+        return userRepository.save(user);
     }
 
     // Método para crear el primer administrador si no existe

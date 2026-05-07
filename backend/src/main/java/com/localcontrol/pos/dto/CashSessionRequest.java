@@ -13,4 +13,5 @@ import java.math.BigDecimal;
 public class CashSessionRequest {
     private Long userId;
     private BigDecimal balance; // Opening or Reported balance
+    private String boxName;
 }

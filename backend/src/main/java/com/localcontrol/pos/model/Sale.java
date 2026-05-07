@@ -34,6 +34,10 @@ public class Sale {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "cash_session_id")
+    private CashSession cashSession;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

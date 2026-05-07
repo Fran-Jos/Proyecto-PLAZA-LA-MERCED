@@ -31,6 +31,14 @@ public class CashService {
     public CashSession openSession(Long userId, BigDecimal openingBalance, String boxName) {
         User user = userRepository.findById(userId).orElseThrow();
 
+        if (boxName == null || boxName.trim().isEmpty()) {
+            throw new RuntimeException("Debe ingresar el nombre de la caja.");
+        }
+
+        if (openingBalance == null || openingBalance.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("El monto de apertura debe ser mayor a 0.");
+        }
+
         if (getActiveSession().isPresent()) {
             throw new RuntimeException("Ya existe una caja abierta. Debe cerrarse antes de abrir otra.");
         }

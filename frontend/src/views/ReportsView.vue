@@ -107,6 +107,14 @@ const productStats = computed(() => {
   }
 })
 
+
+const paymentTotal = computed(() => salesByMethod.value.cash + salesByMethod.value.deuna)
+const cashPercent = computed(() => paymentTotal.value ? (salesByMethod.value.cash / paymentTotal.value) * 100 : 0)
+const deunaPercent = computed(() => paymentTotal.value ? (salesByMethod.value.deuna / paymentTotal.value) * 100 : 0)
+const paymentPieStyle = computed(() => ({
+  background: `conic-gradient(#22c55e 0% ${cashPercent.value}%, #a855f7 ${cashPercent.value}% 100%)`
+}))
+
 const bestSalesDay = computed(() => {
   const daily = {}
   sales.value.forEach(s => {
@@ -184,6 +192,15 @@ const bestSalesDay = computed(() => {
               <h3 class="font-bold mb-2">Día con más ventas</h3>
               <p v-if="bestSalesDay"><b>{{ bestSalesDay[0] }}</b> - ${{ Number(bestSalesDay[1]).toFixed(2) }}</p>
               <p v-else>Sin datos suficientes.</p>
+
+              <h3 class="font-bold mt-4 mb-2">Distribución por método de pago</h3>
+              <div class="flex items-center gap-4 mb-4">
+                <div class="w-28 h-28 rounded-full" :style="paymentPieStyle"></div>
+                <div class="text-sm">
+                  <p><span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>Efectivo: ${{ salesByMethod.cash.toFixed(2) }} ({{ cashPercent.toFixed(1) }}%)</p>
+                  <p><span class="inline-block w-3 h-3 bg-purple-500 rounded-full mr-2"></span>DEUNA: ${{ salesByMethod.deuna.toFixed(2) }} ({{ deunaPercent.toFixed(1) }}%)</p>
+                </div>
+              </div>
 
               <h3 class="font-bold mt-4 mb-2">Productos más vendidos</h3>
               <div v-for="item in productStats.top" :key="item[0]" class="mb-2">

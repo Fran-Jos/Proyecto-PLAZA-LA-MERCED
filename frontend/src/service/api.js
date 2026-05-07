@@ -54,3 +54,10 @@ export const CashService = {
     return api.post('/cash/close', data)
   }
 }
+
+
+export const AdminService = {
+  createUser(data) {
+    return api.post('/admin/users', data)
+  }
+}

@@ -78,4 +78,8 @@ public class SaleService {
     public List<Sale> getAllSales() {
         return saleRepository.findAll();
     }
+
+    public List<Sale> getSalesByUser(Long userId) {
+        return saleRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
 }

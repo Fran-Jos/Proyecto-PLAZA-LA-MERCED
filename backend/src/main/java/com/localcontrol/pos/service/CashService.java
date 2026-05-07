@@ -46,6 +46,12 @@ public class CashService {
         return cashSessionRepository.save(session);
     }
 
+
+    public List<CashSession> getSessionHistory(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        return cashSessionRepository.findByUserOrderByOpenedAtDesc(user);
+    }
+
     @Transactional
     public CashSession closeSession(Long userId, BigDecimal reportedBalance) {
         CashSession session = getActiveSession(userId)

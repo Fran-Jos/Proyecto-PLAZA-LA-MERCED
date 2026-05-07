@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/cash")
 @RequiredArgsConstructor
@@ -19,6 +21,11 @@ public class CashController {
         return cashService.getActiveSession(userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
+    }
+
+    @GetMapping("/history/{userId}")
+    public ResponseEntity<List<CashSession>> getHistory(@PathVariable Long userId) {
+        return ResponseEntity.ok(cashService.getSessionHistory(userId));
     }
 
     @PostMapping("/open")

@@ -16,21 +16,21 @@ public class CashController {
 
     private final CashService cashService;
 
-    @GetMapping("/active/{userId}")
-    public ResponseEntity<CashSession> getActive(@PathVariable Long userId) {
-        return cashService.getActiveSession(userId)
+    @GetMapping("/active")
+    public ResponseEntity<CashSession> getActive() {
+        return cashService.getActiveSession()
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
     }
 
-    @GetMapping("/history/{userId}")
-    public ResponseEntity<List<CashSession>> getHistory(@PathVariable Long userId) {
-        return ResponseEntity.ok(cashService.getSessionHistory(userId));
+    @GetMapping("/history")
+    public ResponseEntity<List<CashSession>> getHistory() {
+        return ResponseEntity.ok(cashService.getSessionHistory());
     }
 
     @PostMapping("/open")
     public ResponseEntity<CashSession> open(@RequestBody CashSessionRequest request) {
-        return ResponseEntity.ok(cashService.openSession(request.getUserId(), request.getBalance()));
+        return ResponseEntity.ok(cashService.openSession(request.getUserId(), request.getBalance(), request.getBoxName()));
     }
 
     @PostMapping("/close")

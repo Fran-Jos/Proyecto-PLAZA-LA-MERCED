@@ -40,9 +40,9 @@ const loadData = async (showLoading = true) => {
   if (showLoading) loading.value = true
   try {
     const [salesRes, activeRes, historyRes] = await Promise.all([
-      SaleService.getByUser(authStore.user.id),
-      CashService.getActive(authStore.user.id),
-      CashService.getHistory(authStore.user.id)
+      SaleService.getAll(),
+      CashService.getActive(),
+      CashService.getHistory()
     ])
     sales.value = Array.isArray(salesRes.data) ? salesRes.data : []
     activeSession.value = activeRes.data || null
@@ -90,6 +90,33 @@ const handleCloseCash = async () => {
 
 const formatDate = (dateString) => new Date(dateString).toLocaleString()
 const calcDifference = (session) => Number(session.reportedBalance || 0) - Number(session.closingBalance || 0)
+
+const productStats = computed(() => {
+  const counter = {}
+  salesInActiveSession.value.forEach(sale => {
+    (sale.items || []).forEach(item => {
+      const name = item.product?.name || `Producto #${item.product?.id || ''}`
+      counter[name] = (counter[name] || 0) + Number(item.quantity || 0)
+    })
+  })
+  const entries = Object.entries(counter).sort((a,b) => b[1]-a[1])
+  return {
+    top: entries.slice(0,5),
+    low: entries.slice(-5).reverse(),
+    max: entries.length ? entries[0][1] : 1
+  }
+})
+
+const bestSalesDay = computed(() => {
+  const daily = {}
+  sales.value.forEach(s => {
+    const day = new Date(s.createdAt).toLocaleDateString()
+    daily[day] = (daily[day] || 0) + Number(s.total || 0)
+  })
+  const sorted = Object.entries(daily).sort((a,b) => b[1]-a[1])
+  return sorted[0] || null
+})
+
 </script>
 
 <template>
@@ -147,6 +174,33 @@ const calcDifference = (session) => Number(session.reportedBalance || 0) - Numbe
         </template>
       </Card>
     </div>
+
+
+      <Card>
+        <template #title>Dashboard Comercial</template>
+        <template #content>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="font-bold mb-2">Día con más ventas</h3>
+              <p v-if="bestSalesDay"><b>{{ bestSalesDay[0] }}</b> - ${{ Number(bestSalesDay[1]).toFixed(2) }}</p>
+              <p v-else>Sin datos suficientes.</p>
+
+              <h3 class="font-bold mt-4 mb-2">Productos más vendidos</h3>
+              <div v-for="item in productStats.top" :key="item[0]" class="mb-2">
+                <div class="text-sm">{{ item[0] }} ({{ item[1] }})</div>
+                <div class="h-2 bg-gray-200 rounded"><div class="h-2 bg-green-500 rounded" :style="{width: ((item[1]/productStats.max)*100)+'%'}"></div></div>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-bold mb-2">Productos con baja rotación</h3>
+              <div v-for="item in productStats.low" :key="item[0]" class="mb-2">
+                <div class="text-sm">{{ item[0] }} ({{ item[1] }})</div>
+                <div class="h-2 bg-gray-200 rounded"><div class="h-2 bg-purple-500 rounded" :style="{width: ((item[1]/productStats.max)*100)+'%'}"></div></div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </Card>
 
     <Dialog v-model:visible="showCloseDialog" header="Cierre de Caja (Arqueo Ciego)" modal :style="{ width: '400px' }">
       <div class="space-y-4 pt-4">

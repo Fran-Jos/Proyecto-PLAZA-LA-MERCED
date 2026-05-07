@@ -47,11 +47,11 @@ export const SaleService = {
 }
 
 export const CashService = {
-  getActive(userId) {
-    return api.get(`/cash/active/${userId}`)
+  getActive() {
+    return api.get(`/cash/active`)
   },
-  getHistory(userId) {
-    return api.get(`/cash/history/${userId}`)
+  getHistory() {
+    return api.get(`/cash/history`)
   },
   open(data) {
     return api.post('/cash/open', data)

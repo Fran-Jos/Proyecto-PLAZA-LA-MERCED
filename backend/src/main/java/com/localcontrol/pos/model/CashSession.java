@@ -23,6 +23,9 @@ public class CashSession {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "name", nullable = false)
+    private String name;
+
     @Column(name = "opening_balance", nullable = false)
     private BigDecimal openingBalance;
 

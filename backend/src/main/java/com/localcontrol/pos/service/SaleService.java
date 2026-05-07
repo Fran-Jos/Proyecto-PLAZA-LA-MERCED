@@ -21,16 +21,21 @@ public class SaleService {
     private final SaleRepository saleRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final CashService cashService;
 
     @Transactional
     public Sale createSale(SaleRequest request) {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
+        CashSession activeCashSession = cashService.getActiveSession()
+                .orElseThrow(() -> new RuntimeException("No hay caja abierta. Abra una caja antes de vender."));
+
         Sale sale = Sale.builder()
                 .paymentMethod(Sale.PaymentMethod.valueOf(request.getPaymentMethod()))
                 .referenceCode(request.getReferenceCode())
                 .user(user)
+                .cashSession(activeCashSession)
                 .items(new ArrayList<>())
                 .total(BigDecimal.ZERO)
                 .build();

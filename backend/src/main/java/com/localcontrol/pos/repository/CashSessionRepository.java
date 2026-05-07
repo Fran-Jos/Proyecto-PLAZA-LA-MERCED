@@ -9,5 +9,6 @@ import java.util.Optional;
 
 public interface CashSessionRepository extends JpaRepository<CashSession, Long> {
     Optional<CashSession> findByUserAndStatus(User user, CashSession.SessionStatus status);
-    List<CashSession> findByUserOrderByOpenedAtDesc(User user);
+    Optional<CashSession> findByStatus(CashSession.SessionStatus status);
+    List<CashSession> findAllByOrderByOpenedAtDesc();
 }

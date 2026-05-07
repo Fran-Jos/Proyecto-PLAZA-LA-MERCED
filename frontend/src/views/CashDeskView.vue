@@ -5,11 +5,13 @@ import { useAuthStore } from '../store/auth'
 import Card from 'primevue/card'
 import InputNumber from 'primevue/inputnumber'
 import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
 import { emitDataChanged, DataEvents } from '../utils/realtimeEvents'
 
 const authStore = useAuthStore()
 const activeSession = ref(null)
 const openingBalance = ref(0)
+const boxName = ref('')
 const closingBalance = ref(0)
 const loading = ref(false)
 const error = ref('')
@@ -18,7 +20,7 @@ const canOpen = computed(() => !activeSession.value)
 
 const loadActive = async () => {
   try {
-    const response = await CashService.getActive(authStore.user.id)
+    const response = await CashService.getActive()
     activeSession.value = response.data || null
   } catch {
     activeSession.value = null
@@ -29,7 +31,7 @@ const openCash = async () => {
   loading.value = true
   error.value = ''
   try {
-    await CashService.open({ userId: authStore.user.id, balance: openingBalance.value || 0 })
+    await CashService.open({ userId: authStore.user.id, balance: openingBalance.value || 0, boxName: boxName.value })
     emitDataChanged(DataEvents.CASH_OPENED)
     await loadActive()
   } catch (err) {
@@ -65,6 +67,7 @@ onMounted(loadActive)
       <template #title>Abrir caja</template>
       <template #content>
         <div class="space-y-4">
+          <InputText v-model="boxName" placeholder="Nombre de la caja" />
           <InputNumber v-model="openingBalance" mode="currency" currency="USD" locale="en-US" fluid />
           <Button label="Abrir Caja" icon="pi pi-lock-open" :loading="loading" @click="openCash" />
         </div>
@@ -74,6 +77,7 @@ onMounted(loadActive)
     <Card v-else class="max-w-xl">
       <template #title>Caja abierta</template>
       <template #content>
+        <p class="mb-2">Caja: <strong>{{ activeSession.name }}</strong></p>
         <p class="mb-2">Apertura: <strong>${{ Number(activeSession.openingBalance).toFixed(2) }}</strong></p>
         <p class="mb-4">La caja está acumulando ventas en efectivo automáticamente.</p>
         <InputNumber v-model="closingBalance" mode="currency" currency="USD" locale="en-US" fluid class="mb-4" />

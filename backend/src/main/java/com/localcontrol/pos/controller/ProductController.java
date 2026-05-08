@@ -47,4 +47,14 @@ public class ProductController {
     public ResponseEntity<Category> createCategory(@RequestBody Category category) {
         return ResponseEntity.ok(productService.saveCategory(category));
     }
+
+    @PatchMapping("/{id}/favorite")
+    public ResponseEntity<Product> toggleFavorite(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.toggleFavorite(id));
+    }
+
+    @PatchMapping("/{id}/stock")
+    public ResponseEntity<Product> updateStock(@PathVariable Long id, @RequestParam Integer quantity) {
+        return ResponseEntity.ok(productService.updateStock(id, quantity));
+    }
 }

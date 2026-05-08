@@ -31,6 +31,12 @@ export const ProductService = {
   },
   saveCategory(category) {
     return api.post('/products/categories', category)
+  },
+  toggleFavorite(id) {
+    return api.patch(`/products/${id}/favorite`)
+  },
+  updateStock(id, quantity) {
+    return api.patch(`/products/${id}/stock?quantity=${quantity}`)
   }
 }
 
@@ -61,6 +67,11 @@ export const CashService = {
   }
 }
 
+export const ReportService = {
+  getDashboard() {
+    return api.get('/reports/dashboard')
+  }
+}
 
 export const AdminService = {
   createUser(data) {

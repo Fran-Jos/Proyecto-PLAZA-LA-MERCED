@@ -46,12 +46,13 @@ public class SaleService {
             Product product = productRepository.findById(itemReq.getProductId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + itemReq.getProductId()));
 
-            if (product.getStock() < itemReq.getQuantity()) {
+            int currentStock = product.getStock() != null ? product.getStock() : 0;
+            if (currentStock < itemReq.getQuantity()) {
                 throw new RuntimeException("Stock insuficiente para: " + product.getName());
             }
 
             // Descontar stock
-            product.setStock(product.getStock() - itemReq.getQuantity());
+            product.setStock(currentStock - itemReq.getQuantity());
             productRepository.save(product);
 
             BigDecimal subtotal = product.getPrice().multiply(new BigDecimal(itemReq.getQuantity()));
@@ -74,6 +75,9 @@ public class SaleService {
         if (sale.getPaymentMethod() == Sale.PaymentMethod.DEUNA_TRANSFER) {
             if (sale.getReferenceCode() == null || sale.getReferenceCode().trim().isEmpty()) {
                 throw new RuntimeException("El número de comprobante es obligatorio para transferencias DEUNA");
+            }
+            if (saleRepository.existsByReferenceCode(sale.getReferenceCode())) {
+                throw new RuntimeException("Este código de transferencia ya ha sido ingresado y no es válido");
             }
         }
 

@@ -6,11 +6,13 @@ import com.localcontrol.pos.repository.CategoryRepository;
 import com.localcontrol.pos.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ProductService {
 
     private final ProductRepository productRepository;
@@ -34,5 +36,20 @@ public class ProductService {
 
     public Category saveCategory(Category category) {
         return categoryRepository.save(category);
+    }
+
+    public Product toggleFavorite(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        product.setFavorite(!product.isFavorite());
+        return productRepository.save(product);
+    }
+
+    public Product updateStock(Long id, Integer quantity) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+        int currentStock = product.getStock() != null ? product.getStock() : 0;
+        product.setStock(currentStock + quantity);
+        return productRepository.save(product);
     }
 }

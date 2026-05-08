@@ -46,6 +46,18 @@ const router = createRouter({
       name: 'users',
       component: () => import('../views/UserManagementView.vue'),
       meta: { requiresAuth: true, roles: ['ADMIN'] }
+    },
+    {
+      path: '/price-checker',
+      name: 'price-checker',
+      component: () => import('../views/PriceCheckView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/stock-entry',
+      name: 'stock-entry',
+      component: () => import('../views/StockEntryView.vue'),
+      meta: { requiresAuth: true, roles: ['ADMIN'] }
     }
   ]
 })

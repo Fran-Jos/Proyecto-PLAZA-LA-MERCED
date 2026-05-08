@@ -41,4 +41,7 @@ public class Product {
 
     @Column(name = "barcode")
     private String barcode;
+
+    @Column(nullable = false)
+    private boolean favorite = false;
 }

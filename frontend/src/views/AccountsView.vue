@@ -47,8 +47,10 @@ const accountTotal = computed(() => (selectedAccount.value?.items || []).reduce(
 const addByScan = () => {
   if (!selectedAccount.value || !barcodeQuery.value) return
   const match = products.value.find(p => p.barcode === barcodeQuery.value)
-  if (match) accountsStore.addItem(selectedAccountId.value, match)
-  barcodeQuery.value = ''
+  if (match) {
+    accountsStore.addItem(selectedAccountId.value, match)
+    barcodeQuery.value = ''
+  }
 }
 
 const removeItem = (productId) => {
@@ -115,14 +117,21 @@ const handlePayAccount = async () => {
 
         <div class="bg-white dark:bg-gray-900 rounded-2xl p-4" v-if="selectedAccountId">
           <h2 class="font-black mb-3 dark:text-white">Detalle de cuenta</h2>
-          <InputText v-model="barcodeQuery" @input="addByScan" placeholder="Escanear código para agregar..." class="mb-3" />
+          <InputText v-model="barcodeQuery" @keyup.enter="addByScan" placeholder="Escanear código para agregar..." class="mb-3" />
           <div class="grid grid-cols-2 gap-2 mb-4 max-h-52 overflow-auto">
             <Button v-for="p in products" :key="p.id" :label="p.name" severity="secondary" @click="accountsStore.addItem(selectedAccountId, p)" />
           </div>
 
-          <div v-for="i in selectedAccount?.items || []" :key="i.id" class="flex justify-between items-center text-sm mb-1 border-b py-1 dark:border-gray-800">
-            <span>{{ i.name }} x{{ i.quantity }} - ${{ (i.price * i.quantity).toFixed(2) }}</span>
-            <Button icon="pi pi-times" text severity="danger" @click="removeItem(i.id)" />
+          <div v-for="i in selectedAccount?.items || []" :key="i.id" class="flex justify-between items-center text-sm mb-1 border-b py-2 dark:border-gray-800">
+            <div>
+              <div class="font-bold">{{ i.name }}</div>
+              <div class="text-xs text-blue-600">${{ (i.price * i.quantity).toFixed(2) }}</div>
+            </div>
+            <div class="flex items-center gap-2 bg-white dark:bg-gray-900 p-1 rounded-xl shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
+              <Button icon="pi pi-minus" class="w-6 h-6 p-0" severity="secondary" text rounded @click="removeItem(i.id)" />
+              <span class="font-bold text-xs min-w-[1rem] text-center dark:text-gray-300">{{ i.quantity }}</span>
+              <Button icon="pi pi-plus" class="w-6 h-6 p-0" severity="secondary" text rounded @click="accountsStore.addItem(selectedAccountId, i)" />
+            </div>
           </div>
 
           <div class="mt-4 p-3 rounded-xl bg-gray-100 dark:bg-gray-950 font-black">Total cuenta: ${{ accountTotal.toFixed(2) }}</div>

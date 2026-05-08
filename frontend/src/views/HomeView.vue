@@ -78,6 +78,22 @@ const handleLogout = () => {
         </div>
       </router-link>
 
+      <router-link to="/rentals" class="group">
+        <div class="p-8 bg-white dark:bg-gray-900 rounded-3xl shadow-sm hover:shadow-xl border border-gray-100 dark:border-gray-800 transition-all hover:-translate-y-1">
+          <i class="pi pi-clock text-4xl text-orange-600 mb-4" />
+          <h2 class="text-xl font-bold mb-2">Alquiler</h2>
+          <p class="text-sm text-gray-400">Control de tiempos y alertas.</p>
+        </div>
+      </router-link>
+
+      <router-link to="/accounts" class="group">
+        <div class="p-8 bg-white dark:bg-gray-900 rounded-3xl shadow-sm hover:shadow-xl border border-gray-100 dark:border-gray-800 transition-all hover:-translate-y-1">
+          <i class="pi pi-users text-4xl text-teal-600 mb-4" />
+          <h2 class="text-xl font-bold mb-2">Cuentas</h2>
+          <p class="text-sm text-gray-400">Clientes pendientes y pagos.</p>
+        </div>
+      </router-link>
+
       <router-link to="/stock-entry" v-if="authStore.isAdmin" class="group">
         <div class="p-8 bg-white dark:bg-gray-900 rounded-3xl shadow-sm hover:shadow-xl border border-gray-100 dark:border-gray-800 transition-all hover:-translate-y-1">
           <i class="pi pi-download text-4xl text-cyan-600 mb-4" />

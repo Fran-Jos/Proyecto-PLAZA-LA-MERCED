@@ -172,6 +172,7 @@ const handleProcessPayment = async () => {
             <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span class="text-[10px] font-bold uppercase tracking-wider">Caja: {{ activeSession.name }}</span>
           </div>
+          <Button label="Cuenta" icon="pi pi-users" severity="secondary" outlined @click="$router.push('/accounts?from=pos')" />
           <ThemeToggle />
           <router-link to="/">
             <Button icon="pi pi-home" text rounded severity="secondary" class="dark:text-gray-300" />

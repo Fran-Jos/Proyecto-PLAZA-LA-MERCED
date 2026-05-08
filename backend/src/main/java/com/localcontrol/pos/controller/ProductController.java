@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -54,7 +55,20 @@ public class ProductController {
     }
 
     @PatchMapping("/{id}/stock")
-    public ResponseEntity<Product> updateStock(@PathVariable Long id, @RequestParam Integer quantity) {
-        return ResponseEntity.ok(productService.updateStock(id, quantity));
+    public ResponseEntity<Product> updateStock(
+            @PathVariable Long id,
+            @RequestParam(required = false) Integer quantity,
+            @RequestBody(required = false) Map<String, Integer> payload
+    ) {
+        Integer quantityValue = quantity;
+        if (quantityValue == null && payload != null) {
+            quantityValue = payload.get("quantity");
+        }
+
+        if (quantityValue == null) {
+            throw new IllegalArgumentException("La cantidad es obligatoria");
+        }
+
+        return ResponseEntity.ok(productService.updateStock(id, quantityValue));
     }
 }

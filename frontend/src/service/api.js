@@ -36,7 +36,7 @@ export const ProductService = {
     return api.patch(`/products/${id}/favorite`)
   },
   updateStock(id, quantity) {
-    return api.patch(`/products/${id}/stock?quantity=${quantity}`)
+    return api.patch(`/products/${id}/stock`, { quantity })
   }
 }
 

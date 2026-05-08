@@ -35,6 +35,15 @@ export const useAccountsStore = defineStore('accounts', {
       else account.items.push({ ...product, quantity: 1 })
       save(this.accounts)
     },
+    removeItem(accountId, productId) {
+      const account = this.accounts.find(a => a.id === accountId)
+      if (!account) return
+      const existing = account.items.find(i => i.id === productId)
+      if (!existing) return
+      if (existing.quantity > 1) existing.quantity -= 1
+      else account.items = account.items.filter(i => i.id !== productId)
+      save(this.accounts)
+    },
     markPaid(accountId) {
       const account = this.accounts.find(a => a.id === accountId)
       if (!account) return

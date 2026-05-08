@@ -3,21 +3,31 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import Dialog from 'primevue/dialog'
 import ThemeToggle from '../components/ThemeToggle.vue'
-import { ProductService } from '../service/api'
+import { ProductService, SaleService, CashService } from '../service/api'
 import { useAccountsStore } from '../store/accounts'
 import { onMounted } from 'vue'
+import { useAuthStore } from '../store/auth'
 
 const router = useRouter()
 const accountsStore = useAccountsStore()
+const authStore = useAuthStore()
 const clientName = ref('')
 const search = ref('')
+const barcodeQuery = ref('')
 const selectedAccountId = ref(null)
 const products = ref([])
+const showPaymentDialog = ref(false)
+const paymentMethod = ref('CASH')
+const referenceCode = ref('')
+const loading = ref(false)
+const activeSession = ref(null)
 
 onMounted(async () => {
-  const res = await ProductService.getAll()
-  products.value = res.data
+  const [prodRes, cashRes] = await Promise.all([ProductService.getAll(), CashService.getActive()])
+  products.value = prodRes.data
+  activeSession.value = cashRes.data
 })
 
 const create = () => {
@@ -27,11 +37,48 @@ const create = () => {
   clientName.value = ''
 }
 
+const selectedAccount = computed(() => accountsStore.accounts.find(a => a.id === selectedAccountId.value))
 const filteredAccounts = computed(() => accountsStore.accounts.filter(a => a.clientName.toLowerCase().includes(search.value.toLowerCase())))
 const pendingCount = computed(() => accountsStore.pending.length)
 const paidCount = computed(() => accountsStore.paid.length)
-
 const fromPOS = computed(() => new URLSearchParams(window.location.search).get('from') === 'pos')
+const accountTotal = computed(() => (selectedAccount.value?.items || []).reduce((acc, i) => acc + (i.price * i.quantity), 0))
+
+const addByScan = () => {
+  if (!selectedAccount.value || !barcodeQuery.value) return
+  const match = products.value.find(p => p.barcode === barcodeQuery.value)
+  if (match) accountsStore.addItem(selectedAccountId.value, match)
+  barcodeQuery.value = ''
+}
+
+const removeItem = (productId) => {
+  accountsStore.removeItem(selectedAccountId.value, productId)
+}
+
+const handlePayAccount = async () => {
+  if (!selectedAccount.value || selectedAccount.value.items.length === 0) return
+  if (!activeSession.value) {
+    alert('No hay una caja abierta. Abra caja antes de cobrar.')
+    return
+  }
+  loading.value = true
+  try {
+    await SaleService.create({
+      items: selectedAccount.value.items.map(i => ({ productId: i.id, quantity: i.quantity })),
+      paymentMethod: paymentMethod.value,
+      referenceCode: referenceCode.value,
+      userId: authStore.user.id
+    })
+    accountsStore.markPaid(selectedAccount.value.id)
+    showPaymentDialog.value = false
+    referenceCode.value = ''
+    if (fromPOS.value) router.push('/pos')
+  } catch (err) {
+    alert(err.response?.data?.message || 'Error al cobrar la cuenta')
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
@@ -68,15 +115,51 @@ const fromPOS = computed(() => new URLSearchParams(window.location.search).get('
 
         <div class="bg-white dark:bg-gray-900 rounded-2xl p-4" v-if="selectedAccountId">
           <h2 class="font-black mb-3 dark:text-white">Detalle de cuenta</h2>
+          <InputText v-model="barcodeQuery" @input="addByScan" placeholder="Escanear código para agregar..." class="mb-3" />
           <div class="grid grid-cols-2 gap-2 mb-4 max-h-52 overflow-auto">
             <Button v-for="p in products" :key="p.id" :label="p.name" severity="secondary" @click="accountsStore.addItem(selectedAccountId, p)" />
           </div>
-          <div v-for="i in accountsStore.accounts.find(a => a.id === selectedAccountId)?.items || []" :key="i.id" class="text-sm mb-1">
-            {{ i.name }} x{{ i.quantity }}
+
+          <div v-for="i in selectedAccount?.items || []" :key="i.id" class="flex justify-between items-center text-sm mb-1 border-b py-1 dark:border-gray-800">
+            <span>{{ i.name }} x{{ i.quantity }} - ${{ (i.price * i.quantity).toFixed(2) }}</span>
+            <Button icon="pi pi-times" text severity="danger" @click="removeItem(i.id)" />
           </div>
-          <Button label="Marcar pagada" class="mt-4" @click="accountsStore.markPaid(selectedAccountId)" />
+
+          <div class="mt-4 p-3 rounded-xl bg-gray-100 dark:bg-gray-950 font-black">Total cuenta: ${{ accountTotal.toFixed(2) }}</div>
+
+          <div class="grid grid-cols-2 gap-2 mt-3">
+            <Button label="Guardar" severity="secondary" />
+            <Button label="Pagar" @click="showPaymentDialog = true" :disabled="selectedAccount?.status !== 'PENDING' || (selectedAccount?.items || []).length === 0" />
+          </div>
         </div>
       </div>
     </div>
+
+    <Dialog v-model:visible="showPaymentDialog" modal header="Cobrar cuenta" :style="{ width: '400px' }" class="p-fluid dark:bg-gray-900">
+      <div class="space-y-6 pt-2">
+        <div>
+          <label class="font-bold block mb-2">Método de pago</label>
+          <div class="grid grid-cols-2 gap-2">
+            <Button label="Efectivo" :severity="paymentMethod === 'CASH' ? 'success' : 'secondary'" @click="paymentMethod = 'CASH'" />
+            <Button label="Transferencia" :severity="paymentMethod === 'DEUNA_TRANSFER' ? 'success' : 'secondary'" @click="paymentMethod = 'DEUNA_TRANSFER'" />
+          </div>
+        </div>
+
+        <div v-if="paymentMethod === 'DEUNA_TRANSFER'">
+          <label class="font-bold block mb-2">Referencia</label>
+          <InputText v-model="referenceCode" placeholder="Ej. 998877" />
+        </div>
+
+        <div class="bg-gray-900 text-white p-4 rounded-xl flex justify-between">
+          <span>Total</span>
+          <span class="font-black text-xl">${{ accountTotal.toFixed(2) }}</span>
+        </div>
+
+        <div class="flex gap-3">
+          <Button label="Cancelar" text class="flex-1" @click="showPaymentDialog = false" />
+          <Button label="Confirmar pago" class="flex-1" :loading="loading" :disabled="paymentMethod === 'DEUNA_TRANSFER' && !referenceCode" @click="handlePayAccount" />
+        </div>
+      </div>
+    </Dialog>
   </div>
 </template>

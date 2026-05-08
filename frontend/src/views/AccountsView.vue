@@ -15,6 +15,7 @@ const accountsStore = useAccountsStore()
 const authStore = useAuthStore()
 const clientName = ref('')
 const search = ref('')
+const statusFilter = ref('ALL')
 const barcodeQuery = ref('')
 const selectedAccountId = ref(null)
 const products = ref([])
@@ -38,7 +39,11 @@ const create = () => {
 }
 
 const selectedAccount = computed(() => accountsStore.accounts.find(a => a.id === selectedAccountId.value))
-const filteredAccounts = computed(() => accountsStore.accounts.filter(a => a.clientName.toLowerCase().includes(search.value.toLowerCase())))
+const filteredAccounts = computed(() => accountsStore.accounts.filter(a => {
+  const byName = a.clientName.toLowerCase().includes(search.value.toLowerCase())
+  const byStatus = statusFilter.value === 'ALL' ? true : a.status === statusFilter.value
+  return byName && byStatus
+}))
 const pendingCount = computed(() => accountsStore.pending.length)
 const paidCount = computed(() => accountsStore.paid.length)
 const fromPOS = computed(() => new URLSearchParams(window.location.search).get('from') === 'pos')
@@ -96,9 +101,10 @@ const handlePayAccount = async () => {
       </header>
 
       <div class="grid md:grid-cols-4 gap-4">
-        <div class="bg-white dark:bg-gray-900 rounded-2xl p-4">Pendientes: <b>{{ pendingCount }}</b></div>
-        <div class="bg-white dark:bg-gray-900 rounded-2xl p-4">Pagadas: <b>{{ paidCount }}</b></div>
-      </div>
+        <button class="bg-white dark:bg-gray-900 rounded-2xl p-4 text-left" @click="statusFilter = 'PENDING'">Pendientes: <b>{{ pendingCount }}</b></button>
+        <button class="bg-white dark:bg-gray-900 rounded-2xl p-4 text-left" @click="statusFilter = 'PAID'">Pagadas: <b>{{ paidCount }}</b></button>
+        <button class="bg-white dark:bg-gray-900 rounded-2xl p-4 text-left" @click="statusFilter = 'ALL'">Todas: <b>{{ accountsStore.accounts.length }}</b></button>
+              </div>
 
       <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl grid md:grid-cols-4 gap-3">
         <InputText v-model="clientName" placeholder="Nombre del cliente" />

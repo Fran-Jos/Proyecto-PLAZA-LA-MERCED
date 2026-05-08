@@ -30,7 +30,7 @@ export const useAccountsStore = defineStore('accounts', {
     addItem(accountId, product) {
       const account = this.accounts.find(a => a.id === accountId)
       if (!account) return
-      const existing = account.items.find(i => i.id === product.id)
+      const existing = account.items.find(i => String(i.id) === String(product.id))
       if (existing) existing.quantity += 1
       else account.items.push({ ...product, quantity: 1 })
       save(this.accounts)
@@ -38,10 +38,14 @@ export const useAccountsStore = defineStore('accounts', {
     removeItem(accountId, productId) {
       const account = this.accounts.find(a => a.id === accountId)
       if (!account) return
-      const existing = account.items.find(i => i.id === productId)
-      if (!existing) return
-      if (existing.quantity > 1) existing.quantity -= 1
-      else account.items = account.items.filter(i => i.id !== productId)
+      const idx = account.items.findIndex(i => String(i.id) === String(productId))
+      if (idx === -1) return
+      const existing = account.items[idx]
+      if ((existing.quantity || 0) > 1) {
+        existing.quantity -= 1
+      } else {
+        account.items.splice(idx, 1)
+      }
       save(this.accounts)
     },
     markPaid(accountId) {
